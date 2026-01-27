@@ -1,6 +1,6 @@
 import React, { useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Html, useProgress } from '@react-three/drei';
+import { OrbitControls, useGLTF, Html, useProgress, Stage } from '@react-three/drei';
 
 function Loader() {
     const { progress } = useProgress();
@@ -10,42 +10,28 @@ function Loader() {
 function Model(props) {
     // Load the GLTF model using exact path relative to base
     const glbPath = import.meta.env.BASE_URL + 'matheus_3d.glb';
-    const { nodes, scene } = useGLTF(glbPath);
-    const meshRef = useRef();
-
-    // Find the camera node (trying common names or fallback to first camera found)
-    const cameraNode = nodes['Câmera'] || nodes['Camera'] || Object.values(nodes).find(n => n.isCamera);
-
-    return (
-        <group>
-            {/* If a camera exists in the file, use it as default */}
-            {cameraNode && <primitive object={cameraNode} makeDefault />}
-
-            {/* Render the scene (which contains the mesh) */}
-            <primitive object={scene} ref={meshRef} {...props} />
-        </group>
-    );
+    const { scene } = useGLTF(glbPath);
+    return <primitive object={scene} {...props} />;
 }
 
 const Profile3D = () => {
     return (
         <div style={{ width: '100%', height: '400px' }}>
-            <Canvas>
+            <Canvas shadows dpr={[1, 2]} camera={{ fov: 75 }}>
                 <Suspense fallback={<Loader />}>
-                    {/* No manual PerspectiveCamera here, we rely on the GLB's camera */}
-
-                    {/* Render the loaded model with finalized values */}
-                    <Model
-                        position={[0, -0.4, 0.1]}
-                        rotation={[0.5, -2.8, 0]}
-                        scale={9.6}
-                    />
+                    <Stage environment={null} intensity={0.5} contactShadow={false} shadowBias={-0.0015}>
+                        <Model />
+                    </Stage>
                 </Suspense>
 
                 <OrbitControls
+                    makeDefault
+                    autoRotate={true}
+                    autoRotateSpeed={15}
                     enableZoom={true}
                     enablePan={false}
-                    rotateSpeed={0.5}
+                    minPolarAngle={0}
+                    maxPolarAngle={Math.PI / 1.5}
                 />
             </Canvas>
         </div>

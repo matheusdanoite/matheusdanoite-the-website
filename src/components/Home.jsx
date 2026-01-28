@@ -197,7 +197,7 @@ const Home = () => {
                         left: isMobile ? 0 : windows.music.desktopPosition.left,
                         top: isMobile ? 0 : windows.music.desktopPosition.top,
                     }}
-                    windowStyle={{ width: '100%', maxWidth: '350px' }}
+                    windowStyle={{ width: '100%', maxWidth: '450px' }}
                 >
                     {windows.music.content}
                 </DraggableWindow>

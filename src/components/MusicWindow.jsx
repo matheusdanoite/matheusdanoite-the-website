@@ -96,7 +96,7 @@ const MusicWindow = () => {
                                 {track.name}
                             </TrackName>
                             <ArtistName>
-                                {track.artist} {track.nowPlaying && <span role="img" aria-label="Ouvindo agora" title="Ouvindo agora">🔊</span>}
+                                {track.artist}
                             </ArtistName>
                         </TrackInfo>
                     </TrackItem>

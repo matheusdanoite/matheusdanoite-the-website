@@ -113,7 +113,7 @@ const Home = () => {
             },
             music: {
                 id: 'music',
-                title: 'last_fm.exe',
+                title: 'historico_musicas',
                 isOpen: true,
                 zIndex: 2,
                 content: <MusicWindow />,
@@ -197,7 +197,7 @@ const Home = () => {
                         left: isMobile ? 0 : windows.music.desktopPosition.left,
                         top: isMobile ? 0 : windows.music.desktopPosition.top,
                     }}
-                    windowStyle={{ width: '100%', maxWidth: '450px' }}
+                    windowStyle={{ width: '300px' }}
                 >
                     {windows.music.content}
                 </DraggableWindow>

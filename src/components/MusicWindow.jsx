@@ -11,6 +11,7 @@ const TrackList = styled.ul`
 const TrackItem = styled.li`
     display: flex;
     align-items: center;
+    justify-content: space-between; // Push image left, text right
     padding: 8px;
     border-bottom: 2px solid transparent; // spacer
     
@@ -31,6 +32,8 @@ const TrackInfo = styled.div`
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    align-items: flex-end; // Align text to the right
+    text-align: right;
 `;
 
 const TrackName = styled.span`
@@ -38,6 +41,7 @@ const TrackName = styled.span`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%; // Ensure ellipsis works if needed, though right-align might fight with this. Flex-end usually enough.
 `;
 
 const ArtistName = styled.span`
@@ -45,6 +49,7 @@ const ArtistName = styled.span`
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
 `;
 
 const MusicWindow = () => {

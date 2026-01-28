@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Cutout, Hourglass } from 'react95';
+import { Hourglass } from 'react95';
 
 const TrackList = styled.ul`
     list-style: none;
@@ -83,10 +83,12 @@ const MusicWindow = () => {
         </div>
     );
 
+    const displayedTracks = tracks.slice(0, 5);
+
     return (
-        <Cutout style={{ height: '350px', overflowY: 'auto' }}>
+        <div style={{ height: 'auto', paddingBottom: '10px', background: 'transparent' }}>
             <TrackList>
-                {tracks.map((track, index) => (
+                {displayedTracks.map((track, index) => (
                     <TrackItem key={index}>
                         {track.image && <CoverImage src={track.image} alt="Capa" />}
                         <TrackInfo>
@@ -94,13 +96,13 @@ const MusicWindow = () => {
                                 {track.name}
                             </TrackName>
                             <ArtistName>
-                                {track.artist} {track.nowPlaying && <span style={{ color: 'red', fontWeight: 'bold' }}> (Ouvindo agora)</span>}
+                                {track.artist} {track.nowPlaying && <span role="img" aria-label="Ouvindo agora" title="Ouvindo agora">🔊</span>}
                             </ArtistName>
                         </TrackInfo>
                     </TrackItem>
                 ))}
             </TrackList>
-        </Cutout>
+        </div>
     );
 };
 

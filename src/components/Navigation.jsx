@@ -18,7 +18,7 @@ const Navigation = ({ onNavigate, activeSection }) => {
                     active={activeSection === 'home'}
                     style={{ fontWeight: 'bold' }}
                 >
-                    Matheus José
+                    Matheus Jose
                 </Button>
                 <div style={{ display: 'flex', gap: '4px' }}>
                     {links.map((link) => (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Anchor, Cutout, Hourglass } from 'react95';
+import { Cutout, Hourglass } from 'react95';
 
 const TrackList = styled.ul`
     list-style: none;
@@ -84,16 +84,14 @@ const MusicWindow = () => {
     );
 
     return (
-        <Cutout style={{ height: '300px', overflowY: 'auto', background: 'white' }}>
+        <Cutout style={{ height: '350px', overflowY: 'auto' }}>
             <TrackList>
                 {tracks.map((track, index) => (
                     <TrackItem key={index}>
                         {track.image && <CoverImage src={track.image} alt="Capa" />}
                         <TrackInfo>
                             <TrackName>
-                                <Anchor href={track.url} target="_blank" style={{ textDecoration: 'none', cursor: 'pointer' }}>
-                                    {track.name}
-                                </Anchor>
+                                {track.name}
                             </TrackName>
                             <ArtistName>
                                 {track.artist} {track.nowPlaying && <span style={{ color: 'red', fontWeight: 'bold' }}> (Ouvindo agora)</span>}

@@ -4,8 +4,8 @@ import { AppBar, Toolbar, Button } from 'react95';
 const Navigation = ({ onNavigate, activeSection }) => {
     const links = [
         { id: 'projects', name: 'Projetos' },
-        { id: 'resume', name: 'Currículo' },
-        { id: 'contact', name: 'Contato' }
+        { id: 'resume', name: 'Escritos' },
+        { id: 'contact', name: 'Redes' }
     ];
 
     return (
@@ -18,7 +18,7 @@ const Navigation = ({ onNavigate, activeSection }) => {
                     active={activeSection === 'home'}
                     style={{ fontWeight: 'bold' }}
                 >
-                    Matheus Jose
+                    Matheus José
                 </Button>
                 <div style={{ display: 'flex', gap: '4px' }}>
                     {links.map((link) => (

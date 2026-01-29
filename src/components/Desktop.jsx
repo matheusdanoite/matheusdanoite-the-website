@@ -3,6 +3,8 @@ import Navigation from './Navigation';
 import AsciiArt from './AsciiArt';
 import RandomPhrase from './RandomPhrase';
 import Home from './Home';
+import Redes from './Redes';
+import Projects from './Projects';
 
 const Desktop = () => {
     const [activeSection, setActiveSection] = useState('home');
@@ -12,11 +14,7 @@ const Desktop = () => {
             case 'home':
                 return <Home />;
             case 'projects':
-                return (
-                    <div style={{ textAlign: 'center', color: 'var(--win-gray-dark)', marginTop: '2rem' }}>
-                        <p>Seção de Projetos em construção...</p>
-                    </div>
-                );
+                return <Projects />;
             case 'resume':
                 return (
                     <div style={{ textAlign: 'center', color: 'var(--win-gray-dark)', marginTop: '2rem' }}>
@@ -24,11 +22,7 @@ const Desktop = () => {
                     </div>
                 );
             case 'contact':
-                return (
-                    <div style={{ textAlign: 'center', color: 'var(--win-gray-dark)', marginTop: '2rem' }}>
-                        <p>Formulário de Contato em construção...</p>
-                    </div>
-                );
+                return <Redes />;
             default:
                 return null;
         }
@@ -56,6 +50,19 @@ const Desktop = () => {
                 <div style={{ marginTop: '20px' }}>
                     {renderContent()}
                 </div>
+
+                {/* Footer */}
+                <footer style={{
+                    textAlign: 'center',
+                    padding: '2rem 0 1rem 0',
+                    marginTop: 'auto',
+                    color: 'blue', // Updated to blue as requested
+                    fontSize: '0.85rem',
+                    opacity: 0.7
+                }}>
+                    <p style={{ margin: 0 }}>Pensado por Matheus José da Silva</p>
+                    <p style={{ margin: 0 }}>Guarapuava, 2026</p>
+                </footer>
             </main>
         </>
     );

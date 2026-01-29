@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Profile3D from './Profile3D';
-import MusicWindow from './MusicWindow';
 import { Window, WindowHeader, WindowContent, Button } from 'react95';
 import styled from 'styled-components';
 import Draggable from 'react-draggable';
+import GuestbookWindow from './GuestbookWindow';
 
 const Wrapper = styled.div`
   width: 100%;
-  max-width: 1200px; // Wider max-width for desktop
+  max-width: 1200px;
   margin: 0 auto;
   position: relative;
   
@@ -21,10 +21,14 @@ const Wrapper = styled.div`
   // Desktop Layout
   @media (min-width: 769px) {
     display: block; // Allow absolute positioning children relative to this
-    height: 80vh; // Fixed height area for "desktop" feel
+    min-height: 150vh; // Reduced to fit tighter stack
     padding-top: 20px;
   }
 `;
+// ... (DraggableWindow component remains same) ...
+
+// ... (Inside Home return) ...
+
 
 const DraggableWindow = ({ id, title, children, onClose, onFocus, style, windowStyle, defaultPosition, isMobile }) => {
     const nodeRef = useRef(null);
@@ -35,7 +39,7 @@ const DraggableWindow = ({ id, title, children, onClose, onFocus, style, windowS
             handle=".window-header"
             onMouseDown={() => onFocus(id)}
             defaultPosition={defaultPosition}
-            disabled={isMobile} // Optional: Disable dragging on mobile if preferred? User asked for "responsive... maintaining disposition". Dragging on mobile is often annoying. Let's keep it enabled but stacked? User said "Mobile... mantendo a disposição uma em seguida da outra". Stacking implies static. Let's ENABLE dragging but start stacked. Actually, if I use position:relative on mobile, dragging works via transform.
+            disabled={isMobile}
         >
             <div ref={nodeRef} style={{ ...style, zIndex: style.zIndex }}>
                 <Window style={{ width: '100%', maxWidth: '600px', ...windowStyle }} className="window">
@@ -56,13 +60,6 @@ const DraggableWindow = ({ id, title, children, onClose, onFocus, style, windowS
     );
 };
 
-const getRandomPosition = () => {
-    // Random position between 5% and 40% for left, 20px and 150px for top
-    const top = Math.floor(Math.random() * (150 - 20 + 1)) + 20;
-    const left = Math.floor(Math.random() * (40 - 5 + 1)) + 5;
-    return { top, left };
-};
-
 const Home = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
@@ -72,59 +69,44 @@ const Home = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const [windows, setWindows] = useState(() => {
-        // Model Window (max 500px width in 800px container ≈ 62.5% width)
-        const pos1 = getRandomPosition(35);
-
-        // About Window (max 600px width in 800px container ≈ 75% width)
-        const pos2 = getRandomPosition(25);
-
-        // Music Window (Standard width ~300-400px? Let's say 40%)
-        const pos3 = getRandomPosition(50);
-
-        return {
-            model: {
-                id: 'model',
-                title: 'eu_3d',
-                isOpen: true,
-                zIndex: 1,
-                content: <Profile3D />,
-                desktopPosition: { top: `${pos1.top}px`, left: `${pos1.left}%` }
-            },
-            about: {
-                id: 'about',
-                title: 'sobre_mim',
-                isOpen: true,
-                zIndex: 0,
-                content: (
-                    <div style={{ padding: '1rem' }}>
-                        <h3 style={{ marginTop: 0 }}>Sobre mim</h3>
-                        <p>
-                            [Escreva aqui sobre você...]
-                        </p>
-                        <br />
-                        <p>
-                            Olá! Sou Matheus José, um desenvolvedor apaixonado por criar experiências digitais únicas.
-                            Este portfólio é uma janela para o meu mundo, misturando nostalgia e tecnologia moderna.
-                        </p>
-                    </div>
-                ),
-                desktopPosition: { top: `${pos2.top + 60}px`, left: `${pos2.left + 5}%` }
-            },
-            music: {
-                id: 'music',
-                title: 'historico_musicas',
-                isOpen: true,
-                zIndex: 2,
-                content: <MusicWindow />,
-                desktopPosition: { top: `${pos3.top + 100}px`, left: `${pos3.left + 10}%` }
-            }
-        };
+    const [windows, setWindows] = useState({
+        about: {
+            id: 'about',
+            title: 'bio',
+            isOpen: true,
+            zIndex: 1, // Starts on top? Or user wants specific order? Let's keep 1
+            content: (
+                <div style={{ padding: '1rem' }}>
+                    <h3 style={{ marginTop: 0 }}>Sobre mim</h3>
+                    <p>
+                        [Escreva aqui sobre você...]
+                    </p>
+                    <br />
+                    <p>
+                        Olá! Sou Matheus José, um desenvolvedor apaixonado por criar experiências digitais únicas.
+                        Este portfólio é uma janela para o meu mundo, misturando nostalgia e tecnologia moderna.
+                    </p>
+                </div>
+            ),
+            desktopPosition: { top: '20px', left: '50%' } // Centered
+        },
+        model: {
+            id: 'model',
+            title: 'eu',
+            isOpen: true,
+            zIndex: 0,
+            content: <Profile3D />,
+            desktopPosition: { top: '350px', left: '50%' } // Below Bio
+        },
+        guestbook: {
+            id: 'guestbook',
+            title: 'depoimentos',
+            isOpen: true,
+            zIndex: 0,
+            content: <GuestbookWindow />,
+            desktopPosition: { top: '900px', left: '50%' } // Below Model
+        }
     });
-
-    // Recalculate 'about' position to be independent random logic inside hook above was cleaner.
-    // Let's refine the useState initializer to be more explicit.
-
 
     const closeWindow = (id) => {
         setWindows(prev => ({
@@ -144,27 +126,7 @@ const Home = () => {
 
     return (
         <Wrapper>
-            {/* 3D Model Window */}
-            {windows.model.isOpen && (
-                <DraggableWindow
-                    id="model"
-                    title={windows.model.title}
-                    onClose={closeWindow}
-                    onFocus={focusWindow}
-                    isMobile={isMobile}
-                    style={{
-                        zIndex: windows.model.zIndex,
-                        position: isMobile ? 'relative' : 'absolute',
-                        left: isMobile ? 0 : '5%',
-                        top: isMobile ? 0 : '20px',
-                    }}
-                    windowStyle={{ width: '100%', maxWidth: '500px' }}
-                >
-                    {windows.model.content}
-                </DraggableWindow>
-            )}
-
-            {/* Bio Window - Overlapping on Desktop */}
+            {/* Bio Window (Top) */}
             {windows.about.isOpen && (
                 <DraggableWindow
                     id="about"
@@ -175,35 +137,55 @@ const Home = () => {
                     style={{
                         zIndex: windows.about.zIndex,
                         position: isMobile ? 'relative' : 'absolute',
-                        left: isMobile ? 0 : '40%', // Offset horizontally for overlap
-                        top: isMobile ? 0 : '80px',  // Offset vertically for overlap
+                        left: 0, right: 0, margin: '0 auto', width: 'fit-content',
+                        top: isMobile ? 0 : '20px',
                     }}
                 >
                     {windows.about.content}
                 </DraggableWindow>
             )}
 
-            {/* Music Window */}
-            {windows.music.isOpen && (
+            {/* 3D Model Window (Middle) */}
+            {windows.model.isOpen && (
                 <DraggableWindow
-                    id="music"
-                    title={windows.music.title}
+                    id="model"
+                    title={windows.model.title}
                     onClose={closeWindow}
                     onFocus={focusWindow}
                     isMobile={isMobile}
                     style={{
-                        zIndex: windows.music.zIndex,
+                        zIndex: windows.model.zIndex,
                         position: isMobile ? 'relative' : 'absolute',
-                        left: isMobile ? 0 : windows.music.desktopPosition.left,
-                        top: isMobile ? 0 : windows.music.desktopPosition.top,
+                        left: 0, right: 0, margin: '0 auto', width: 'fit-content',
+                        top: isMobile ? 0 : '290px', // Adjusted for visual balance
                     }}
-                    windowStyle={{ width: '300px' }}
+                    windowStyle={{ width: '100%', maxWidth: '500px' }}
                 >
-                    {windows.music.content}
+                    {windows.model.content}
                 </DraggableWindow>
             )}
 
-            {!windows.model.isOpen && !windows.about.isOpen && !windows.music.isOpen && (
+            {/* Guestbook Window (Bottom) */}
+            {windows.guestbook.isOpen && (
+                <DraggableWindow
+                    id="guestbook"
+                    title={windows.guestbook.title}
+                    onClose={closeWindow}
+                    onFocus={focusWindow}
+                    isMobile={isMobile}
+                    style={{
+                        zIndex: windows.guestbook.zIndex,
+                        position: isMobile ? 'relative' : 'absolute',
+                        left: 0, right: 0, margin: '0 auto', width: 'fit-content',
+                        top: isMobile ? 0 : '780px', // Adjusted to match top gap
+                    }}
+                    windowStyle={{ width: '100%', maxWidth: '600px', height: '620px' }}
+                >
+                    {windows.guestbook.content}
+                </DraggableWindow>
+            )}
+
+            {!windows.model.isOpen && !windows.about.isOpen && !windows.guestbook.isOpen && (
                 <div style={{ textAlign: 'center', marginTop: '100px', color: 'gray', width: '100%' }}>
                     <p>Todas as janelas foram fechadas.</p>
                     <Button onClick={() => window.location.reload()}>Reiniciar Sistema</Button>

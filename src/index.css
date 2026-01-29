@@ -29,7 +29,25 @@ body {
   background-color: var(--win-teal);
   color: var(--win-black);
   font-family: var(--font-ui);
-  -webkit-font-smoothing: none; /* Make fonts crisper */
+  font-size: 12px;
+  /* Optimization for W95FA pixel font */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-weight: normal;
+  /* Force normal weight globally */
+}
+
+/* Force normal weight on specific bold elements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong,
+button {
+  font-weight: normal !important;
 }
 
 a {

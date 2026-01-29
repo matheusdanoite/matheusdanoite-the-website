@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Hourglass } from 'react95';
+import { Hourglass, Anchor } from 'react95';
 
 const TrackList = styled.ul`
     list-style: none;
@@ -91,7 +91,7 @@ const MusicWindow = () => {
     const displayedTracks = tracks.slice(0, 5);
 
     return (
-        <div style={{ height: 'auto', paddingBottom: '10px', background: 'transparent' }}>
+        <div style={{ height: '300px', overflowY: 'auto', paddingBottom: '10px', background: 'transparent' }}>
             <TrackList>
                 {displayedTracks.map((track, index) => (
                     <TrackItem key={index}>
@@ -107,6 +107,11 @@ const MusicWindow = () => {
                     </TrackItem>
                 ))}
             </TrackList>
+            <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '0.8rem' }}>
+                <Anchor href="https://www.last.fm/user/matheusdanoite" target="_blank" style={{ textDecoration: 'none' }}>
+                    matheusdanoite no Last.fm
+                </Anchor>
+            </div>
         </div>
     );
 };

@@ -3,10 +3,18 @@ import React, { useState, useEffect } from 'react';
 const RandomPhrase = () => {
     // Database of phrases (to be populated)
     const phrases = [
-        "Bem vindo à minha página pessoal.",
-        "Design é a minha paixão.",
-        "Construindo o futuro, um pixel de cada vez.",
-        "Carregando ideias..."
+        "Ketchup Hemmer",
+        "É isso aí",
+        "Eu prefiro ser essa metamorfose ambulante",
+        "¯\\_(ツ)_/¯",
+        "Ouça Shinichi Osawa",
+        "K-pop é top",
+        "Gosto de longas caminhadas pela madrugada",
+        "Selo SM de qualidade",
+        "matheusdanet",
+        "Aberto 24h",
+        "Tenho um fã."
+
     ];
 
     const [phrase, setPhrase] = useState(phrases[0]);
@@ -26,7 +34,7 @@ const RandomPhrase = () => {
             fontStyle: 'italic',
             minHeight: '1.5em'
         }}>
-            "{phrase}"
+            {phrase}
         </div>
     );
 };

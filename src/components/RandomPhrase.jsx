@@ -13,8 +13,10 @@ const RandomPhrase = () => {
         "Selo SM de qualidade",
         "matheusdanet",
         "Aberto 24h",
-        "Tenho um fã."
-
+        "Tenho um fã.",
+        "Um bon vivant",
+        "Eu tive uma ideia!",
+        "Here's to the misfits"
     ];
 
     const [phrase, setPhrase] = useState(phrases[0]);

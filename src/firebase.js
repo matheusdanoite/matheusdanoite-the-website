@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -18,6 +19,7 @@ const isConfigured = firebaseConfig.apiKey && firebaseConfig.projectId;
 
 const app = isConfigured ? initializeApp(firebaseConfig) : null;
 const db = isConfigured ? getFirestore(app) : null;
+const storage = isConfigured ? getStorage(app) : null;
 
-export { db };
+export { db, storage };
 export const isFirebaseSetup = !!isConfigured;

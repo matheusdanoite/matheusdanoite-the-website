@@ -15,7 +15,7 @@ const Wrapper = styled.div`
   // Desktop Layout (Default base for Styled Components logic)
   @media (min-width: 769px) {
     display: block; 
-    min-height: 95vh; /* Increased to prevent footer overlap */
+    min-height: 100vh; /* Match Home/Projects for consistent full screen */
     padding-top: 20px;
   }
 

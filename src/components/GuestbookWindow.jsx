@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import { Button, TextField, WindowContent, Cutout, Tabs, Tab, TabBody } from 'react95';
-import CanvasDraw from 'react-canvas-draw';
+import { Button, TextField, Select } from 'react95';
+import DrawingCanvas from './DrawingCanvas';
 import { db, isFirebaseSetup } from '../firebase';
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { fontMappings, transformText, normalizeText } from '../utils/fancyFonts';
 
 const GuestbookWrapper = styled.div`
   display: flex;
@@ -67,55 +68,41 @@ const DrawingPreview = styled.img`
   margin-top: 5px;
 `;
 
-const ToolsRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 5px;
-`;
 
-const GuestbookWindow = () => {
+
+const GuestbookWindow = ({ onAddMessage }) => {
     const [activeTab, setActiveTab] = useState(1); // Default to Mensagens (1)
     const [inputType, setInputType] = useState('text');
+    const [selectedFont, setSelectedFont] = useState('default');
 
-    // Drawing State
-    const [brushColor, setBrushColor] = useState("#000000");
-    const [brushRadius, setBrushRadius] = useState(2);
+
 
     // Form State
     const [name, setName] = useState('');
     const [message, setMessage] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Data State
-    const [messages, setMessages] = useState([]);
     const canvasRef = useRef(null);
-
-    // Fetch Messages
-    useEffect(() => {
-        if (!isFirebaseSetup || !db) return;
-
-        const q = query(
-            collection(db, 'guestbook'),
-            orderBy('createdAt', 'desc'),
-            limit(50)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setMessages(msgs);
-        });
-
-        return () => unsubscribe();
-    }, []);
 
     const handleClearCanvas = () => {
         if (canvasRef.current) {
             canvasRef.current.clear();
         }
+    };
+
+    const handleMessageChange = (e) => {
+        // Normalize whatever is typed so we store the "raw" text in state
+        const rawText = normalizeText(e.target.value);
+
+        // Enforce 300 char limit (check raw length or fancy length? User said 300 chars, usually means codepoints)
+        // Since we are using fancy fonts, rawText should be the source of truth for length.
+        if (rawText.length <= 300) {
+            setMessage(rawText);
+        }
+    };
+
+    const handleFontChange = (value) => {
+        setSelectedFont(value);
     };
 
     const handleSubmit = async () => {
@@ -124,34 +111,54 @@ const GuestbookWindow = () => {
             return;
         }
 
+        let content = '';
+        let type = 'text';
+
+        if (inputType === 'text') {
+            content = transformText(message, selectedFont);
+
+            if (!content || !content.trim()) {
+                alert('Por favor, escreva uma mensagem.');
+                return;
+            }
+        } else if (inputType === 'draw') {
+            if (canvasRef.current) {
+                content = canvasRef.current.getDataURL();
+                type = 'drawing';
+            }
+        }
+
         if (!isFirebaseSetup) {
-            alert('Erro: Banco de dados não configurado.');
+            // Demo Mode: Add locally without alert
+            const newMsg = {
+                id: Date.now().toString(),
+                name: name,
+                content: content,
+                type: type,
+                font: selectedFont,
+                createdAt: { seconds: Date.now() / 1000 }
+            };
+
+            setTimeout(() => {
+                if (onAddMessage) onAddMessage(newMsg);
+
+                setName('');
+                setMessage('');
+                if (inputType === 'draw') handleClearCanvas();
+                setActiveTab(1);
+                setIsSubmitting(false);
+            }, 500);
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-            let content = message;
-            let type = 'text';
-
-            if (inputType === 'text') {
-                if (!message.trim()) {
-                    setIsSubmitting(false);
-                    alert('Por favor, escreva uma mensagem.');
-                    return;
-                }
-            } else if (inputType === 'draw') {
-                if (canvasRef.current) {
-                    content = canvasRef.current.getDataURL();
-                    type = 'drawing';
-                }
-            }
-
             await addDoc(collection(db, 'guestbook'), {
                 name: name.trim(),
                 content: content,
                 type: type,
+                font: selectedFont,
                 createdAt: serverTimestamp()
             });
 
@@ -163,12 +170,14 @@ const GuestbookWindow = () => {
 
         } catch (error) {
             console.error("Error adding document: ", error);
-            alert('Erro ao enviar mensagem.');
+            // Silent error or UI feedback preferred over alert
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    /* 
+    // UNCOMMENT FOR PRODUCTION: Block UI if no Firebase
     if (!isFirebaseSetup) {
         return (
             <WindowContent>
@@ -178,124 +187,85 @@ const GuestbookWindow = () => {
             </WindowContent>
         );
     }
+    */
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Tabs value={activeTab} onChange={setActiveTab}>
-                <Tab value={0}>Assinar</Tab>
-                <Tab value={1}>Mensagens</Tab>
-            </Tabs>
+        <GuestbookWrapper style={{ height: '100%', padding: '2px' }}>
+            {/* Name Input - Full Width */}
+            <div style={{ marginBottom: '5px' }}>
+                <TextField
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Seu nome..."
+                    style={{ width: '100%' }}
+                />
+            </div>
 
-            <TabBody style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 10 }}>
-                {activeTab === 0 && (
-                    <GuestbookWrapper>
-                        {/* Compact Header: Name + Toggle Buttons */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '5px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <label style={{ fontSize: '0.9rem' }}>Nick:</label>
-                                <TextField
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Seu nome..."
-                                    style={{ width: '140px' }}
-                                />
-                            </div>
-                            <div style={{ display: 'flex', gap: '5px' }}>
-                                <Button active={inputType === 'text'} onClick={() => setInputType('text')} size="sm">📝</Button>
-                                <Button active={inputType === 'draw'} onClick={() => setInputType('draw')} size="sm">🎨</Button>
-                            </div>
-                        </div>
+            {inputType === 'text' ? (
+                <>
+                    {/* Formatting Toolbar - Wacky Fonts Only */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
+                        <Select
+                            width={'100%'}
+                            options={[
+                                { value: 'default', label: 'Comic Sans' },
+                                ...fontMappings.map(f => ({ value: f.name, label: f.name }))
+                            ]}
+                            onChange={(value) => handleFontChange(value.value)}
+                            value={selectedFont}
+                            placeholder="Escolha um estilo..."
+                            menuMaxHeight={150}
+                            style={{
+                                fontWeight: 'light',
+                                fontFamily: "'W95FA', 'ms_sans_serif', sans-serif",
+                                WebkitFontSmoothing: 'antialiased',
+                                MozOsxFontSmoothing: 'grayscale',
+                            }}
+                        />
+                    </div>
 
-                        {inputType === 'text' ? (
-                            <Cutout style={{ padding: '10px', background: 'white', flex: 1 }}>
-                                <textarea
-                                    style={{ width: '100%', height: '100%', border: 'none', resize: 'none', outline: 'none', fontFamily: 'ms_sans_serif', fontSize: '1rem' }}
-                                    value={message}
-                                    onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="Deixe sua mensagem..."
-                                />
-                            </Cutout>
-                        ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, overflow: 'hidden' }}>
-                                <ToolsRow>
-                                    <label>Cor:</label>
-                                    <input
-                                        type="color"
-                                        value={brushColor}
-                                        onChange={(e) => setBrushColor(e.target.value)}
-                                        style={{ width: '30px', height: '30px', padding: 0, border: 'none', cursor: 'pointer' }}
-                                    />
-                                    <label style={{ marginLeft: '10px' }}>Pincel:</label>
-                                    <Button size="sm" active={brushRadius === 2} onClick={() => setBrushRadius(2)}>P</Button>
-                                    <Button size="sm" active={brushRadius === 5} onClick={() => setBrushRadius(5)}>M</Button>
-                                    <Button size="sm" active={brushRadius === 10} onClick={() => setBrushRadius(10)}>G</Button>
-                                </ToolsRow>
+                    <TextField
+                        multiline
+                        rows={6}
+                        value={transformText(message, selectedFont)}
+                        onChange={handleMessageChange}
+                        placeholder="Escreva sua mensagem..."
+                        style={{
+                            width: '100%',
+                            fontFamily: selectedFont === 'default' ? "'ComicCustom', 'Comic Sans MS', 'Comic Sans', cursive" : "'W95FA', 'ms_sans_serif', sans-serif",
+                            fontSize: '14px',
+                            WebkitFontSmoothing: selectedFont === 'default' ? 'auto' : 'none',
+                            MozOsxFontSmoothing: selectedFont === 'default' ? 'auto' : 'grayscale',
+                            fontSmooth: selectedFont === 'default' ? 'auto' : 'never',
+                            textRendering: selectedFont === 'default' ? 'auto' : 'aliased'
+                        }}
+                    />
+                    <div style={{
+                        marginTop: '2px',
+                        fontSize: '0.8rem',
+                        color: 'black',
+                        textAlign: 'right'
+                    }}>
+                        {message.length}/300
+                    </div>
+                </>
+            ) : (
+                <DrawingCanvas ref={canvasRef} />
+            )}
 
-                                {/* Scaled Canvas Container */}
-                                <div style={{
-                                    width: '100%',
-                                    height: '340px', // Visual restriction
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    alignItems: 'flex-start',
-                                    overflow: 'hidden',
-                                    background: '#efefef',
-                                    border: '2px solid #8e8e8e',
-                                }}>
-                                    <div style={{ transform: 'scale(0.65)', transformOrigin: 'top center' }}>
-                                        <CanvasDraw
-                                            ref={canvasRef}
-                                            brushColor={brushColor}
-                                            brushRadius={brushRadius}
-                                            lazyRadius={0}
-                                            canvasWidth={500}
-                                            canvasHeight={500}
-                                            gridColor="rgba(0,0,0,0.1)"
-                                            style={{ background: 'white' }}
-                                        />
-                                    </div>
-                                </div>
-                                <Button onClick={handleClearCanvas} size="sm" style={{ marginTop: '5px' }}>Limpar Tela</Button>
-                            </div>
-                        )}
+            <div style={{ flex: 1 }}></div>
 
-                        <div style={{ textAlign: 'right', marginTop: 'auto', paddingTop: '10px' }}>
-                            <Button onClick={handleSubmit} disabled={isSubmitting} primary>
-                                {isSubmitting ? 'Enviando...' : 'Enviar'}
-                            </Button>
-                        </div>
-                    </GuestbookWrapper>
-                )}
-
-                {activeTab === 1 && (
-                    <Cutout style={{ flex: 1, padding: '0', background: 'white' }}>
-                        <MessageList>
-                            {messages.length === 0 ? (
-                                <p style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
-                                    Nenhuma mensagem ainda.
-                                </p>
-                            ) : (
-                                messages.map((msg) => (
-                                    <MessageItem key={msg.id}>
-                                        <AuthorHeader>
-                                            {msg.name}
-                                            <Timestamp>
-                                                {msg.createdAt?.seconds ? new Date(msg.createdAt.seconds * 1000).toLocaleDateString() : 'Agora'}
-                                            </Timestamp>
-                                        </AuthorHeader>
-                                        {msg.type === 'drawing' ? (
-                                            <DrawingPreview src={msg.content} alt="Desenho" />
-                                        ) : (
-                                            <p style={{ margin: 0 }}>{msg.content}</p>
-                                        )}
-                                    </MessageItem>
-                                ))
-                            )}
-                        </MessageList>
-                    </Cutout>
-                )}
-            </TabBody>
-        </div>
+            {/* Bottom Actions: Mode Toggles (Left) + Submit (Right) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: '10px' }}>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                    <Button active={inputType === 'text'} onClick={() => setInputType('text')}>Escrita</Button>
+                    <Button active={inputType === 'draw'} onClick={() => setInputType('draw')}>Desenho</Button>
+                </div>
+                <Button onClick={handleSubmit} disabled={isSubmitting} primary={!isSubmitting}>
+                    {isSubmitting ? 'Enviando...' : 'Enviar'}
+                </Button>
+            </div>
+        </GuestbookWrapper>
     );
 };
 

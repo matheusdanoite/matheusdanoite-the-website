@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import styled from 'styled-components';
-import { Window, WindowHeader, WindowContent, Button } from 'react95';
-import Draggable from 'react-draggable';
+import { Button } from 'react95';
+import DraggableWindow from './DraggableWindow';
 
 const GridContainer = styled.div`
     display: flex;
@@ -49,6 +49,7 @@ const ProjectContentWrapper = styled.div`
     display: flex;
     flex-direction: column;
     gap: 15px;
+    padding: 1rem;
 `;
 
 const ProjectImage = styled.img`
@@ -59,10 +60,11 @@ const ProjectImage = styled.img`
     align-self: center;
 `;
 
-const Projects = () => {
+const Projects = ({ onNavigate }) => {
     const [activeProject, setActiveProject] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const nodeRef = useRef(null);
+    const [dynamicHeight, setDynamicHeight] = useState(400); // Base height
+    const windowRef = useRef(null);
 
     React.useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -70,9 +72,41 @@ const Projects = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Effect to measure window height when activeProject changes
+    React.useEffect(() => {
+        if (activeProject && windowRef.current) {
+            const updateHeight = () => {
+                const height = windowRef.current.offsetHeight;
+                setDynamicHeight(Math.max(400, height + 150)); // Buffer for top/bottom
+            };
+
+            // Initial measure
+            updateHeight();
+
+            // Watch for size changes (e.g. image loading)
+            const resizeObserver = new ResizeObserver(updateHeight);
+            resizeObserver.observe(windowRef.current);
+
+            return () => resizeObserver.disconnect();
+        } else {
+            setDynamicHeight(400); // Reset to default minHeight
+        }
+    }, [activeProject]);
+
+    React.useEffect(() => {
+        if (activeProject && isMobile) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [activeProject, isMobile]);
+
     const projects = [
         { id: 1, name: 'Hangul Hangover', icon: 'https://win98icons.alexmeub.com/icons/png/console_prompt-0.png' },
-        { id: 2, name: 'Projeto 2.bat', icon: 'https://win98icons.alexmeub.com/icons/png/executable-0.png' },
+        { id: 2, name: 'Legado Digital', icon: 'https://win98icons.alexmeub.com/icons/png/executable-0.png' },
         { id: 3, name: 'Projeto 3.msi', icon: 'https://win98icons.alexmeub.com/icons/png/installer_file_gear-0.png' },
     ];
 
@@ -80,7 +114,7 @@ const Projects = () => {
         switch (id) {
             case 1:
                 return (
-                    <ProjectContentWrapper style={{ maxHeight: isMobile ? 'calc(90vh - 100px)' : '60vh', overflowY: 'auto', paddingRight: '10px' }}>
+                    <ProjectContentWrapper>
                         <p style={{ fontWeight: 'bold' }}>Um estudo sobre tipografia e café.</p>
                         <ProjectImage src="https://placehold.co/600x400/png?text=Hangul+Foto+1" alt="Hangul Preview" />
                         <p>
@@ -97,8 +131,21 @@ const Projects = () => {
             case 2:
                 // Placeholder for Project 2
                 return (
+
                     <ProjectContentWrapper>
-                        <p>Detalhes do Projeto 2 virão em breve.</p>
+                        <p>Arquivos preservados do passado. Estes são backups estáticos dos meus perfis no Orkut e Twitter.</p>
+                        <p>Navegue como se estivesse anos atrás.</p>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <Button onClick={() => onNavigate('orkut')} size="lg" style={{ fontWeight: 'bold' }}>
+                                Acessar Orkut (2014)
+                            </Button>
+                            <Button onClick={() => onNavigate('twitter')} size="lg" style={{ fontWeight: 'bold' }}>
+                                Acessar Twitter
+                            </Button>
+                            <Button onClick={() => onNavigate('instagram')} size="lg" style={{ fontWeight: 'bold' }}>
+                                Acessar Instagram
+                            </Button>
+                        </div>
                     </ProjectContentWrapper>
                 );
             case 3:
@@ -119,7 +166,7 @@ const Projects = () => {
     };
 
     return (
-        <div style={{ position: 'relative', width: '100%', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ position: 'relative', width: '100%', minHeight: `${dynamicHeight}px`, display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'min-height 0.3s ease' }}>
             {/* Icons Grid */}
             <GridContainer>
                 {projects.map((project) => (
@@ -136,69 +183,65 @@ const Projects = () => {
                     // Mobile: Fixed Overlay BELOW Nav Bar
                     <div style={{
                         position: 'fixed',
-                        top: '50px', // Exact height of Navigation Bar
+                        top: '40px',
                         left: 0,
                         width: '100vw',
-                        height: 'calc(100vh - 50px)', // Fill remaining height
-                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        height: 'calc(100vh - 40px)',
                         zIndex: 2000,
                         display: 'flex',
-                        alignItems: 'flex-start', // Start from top to respect margin
+                        alignItems: 'flex-start',
                         justifyContent: 'center',
-                        paddingTop: '20px', // Extra margin from valid area
-                        pointerEvents: 'auto'
-                    }}>
-                        <Window style={{ width: '90%', maxWidth: '600px', maxHeight: '90%', display: 'flex', flexDirection: 'column' }} className="window">
-                            <WindowHeader className="window-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    {getProjectTitle(activeProject)}
-                                </span>
-                                <Button onClick={() => setActiveProject(null)} size='sm' square>
-                                    <span style={{ fontWeight: 'bold', transform: 'translateY(-1px)' }}>x</span>
-                                </Button>
-                            </WindowHeader>
-                            <WindowContent style={{ overflowY: 'auto' }}>
+                        overflowY: 'auto',
+                        WebkitOverflowScrolling: 'touch',
+                        paddingBottom: '150px'
+                    }}
+                        onClick={(e) => {
+                            if (e.target === e.currentTarget) setActiveProject(null);
+                        }}
+                    >
+                        <DraggableWindow
+                            id={`project-${activeProject}`}
+                            title={getProjectTitle(activeProject)}
+                            onClose={() => setActiveProject(null)}
+                            onFocus={() => { }}
+                            isMobile={true}
+                            style={{
+                                width: '90%',
+                                maxWidth: '600px',
+                                marginTop: '20px',
+                                marginBottom: '20px',
+                                position: 'relative'
+                            }}
+                            windowStyle={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+                        >
+                            <div style={{ padding: 0, display: 'flex', flexDirection: 'column' }}>
                                 {renderProjectContent(activeProject)}
-                            </WindowContent>
-                        </Window>
+                            </div>
+                        </DraggableWindow>
                     </div>
                 ) : (
                     // Desktop: Draggable & Responsive
-                    <Draggable
-                        nodeRef={nodeRef}
-                        handle=".window-header"
-                        defaultPosition={{ x: 0, y: 0 }}
+                    <DraggableWindow
+                        id={`project-${activeProject}`}
+                        title={getProjectTitle(activeProject)}
+                        onClose={() => setActiveProject(null)}
+                        onFocus={() => { }} // Single active project, no Z-index management needed yet
+                        isMobile={false}
+                        style={{
+                            position: 'absolute',
+                            zIndex: 1000,
+                            top: '0px',
+                            left: '15vw',
+                            width: '100vw',
+                            minWidth: '320px',
+                            maxWidth: '1000px',
+                        }}
+                        windowStyle={{ width: '100%', maxWidth: '100%' }}
                     >
-                        <div
-                            ref={nodeRef}
-                            style={{
-                                position: 'absolute',
-                                zIndex: 1000,
-                                top: '50px', // Push down slightly to clear nav visually if not dragged
-                                left: 0,
-                                right: 0, // left+right+margin:auto centers absolute elements
-                                marginLeft: 'auto',
-                                marginRight: 'auto',
-                                width: '60vw',
-                                minWidth: '320px',
-                                maxWidth: '800px',
-                            }}
-                        >
-                            <Window style={{ width: '100%' }} className="window">
-                                <WindowHeader className="window-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'grab' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                        {getProjectTitle(activeProject)}
-                                    </span>
-                                    <Button onClick={() => setActiveProject(null)} size='sm' square>
-                                        <span style={{ fontWeight: 'bold', transform: 'translateY(-1px)' }}>x</span>
-                                    </Button>
-                                </WindowHeader>
-                                <WindowContent>
-                                    {renderProjectContent(activeProject)}
-                                </WindowContent>
-                            </Window>
+                        <div ref={windowRef} style={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            {renderProjectContent(activeProject)}
                         </div>
-                    </Draggable>
+                    </DraggableWindow>
                 )
             )}
         </div>

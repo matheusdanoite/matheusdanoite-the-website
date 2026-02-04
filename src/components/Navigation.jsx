@@ -9,26 +9,34 @@ const Navigation = ({ onNavigate, activeSection }) => {
     ];
 
     return (
-        <AppBar fixed={true} style={{ top: 0, zIndex: 999, height: '40px' }}>
-            <Toolbar style={{ justifyContent: 'space-between', minHeight: '40px', padding: '0 8px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
-                <Button
-                    onClick={() => onNavigate('home')}
-                    variant="menu"
-                    size="sm"
-                    active={activeSection === 'home'}
-                    style={{ fontWeight: 'bold' }}
-                >
-                    Matheus José
-                </Button>
+        <AppBar style={{ position: 'fixed', top: 0, zIndex: 2001, height: '40px' }}>
+            <Toolbar style={{ justifyContent: 'space-between', height: '36px', padding: '0 8px', width: '100%', maxWidth: '950px', margin: '0 auto' }}>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                    <Button
+                        onClick={() => onNavigate('home')}
+                        active={activeSection === 'home'}
+                        size="sm"
+                        style={{
+                            fontWeight: activeSection === 'home' ? 'bold' : 'normal',
+                            paddingTop: '2px',
+                            paddingBottom: '2px'
+                        }}
+                    >
+                        Matheus José
+                    </Button>
+                </div>
                 <div style={{ display: 'flex', gap: '4px' }}>
                     {links.map((link) => (
                         <Button
                             key={link.id}
                             onClick={() => onNavigate(link.id)}
                             active={activeSection === link.id}
-                            variant="default"
                             size="sm"
-                            style={{ fontWeight: activeSection === link.id ? 'bold' : 'normal' }}
+                            style={{
+                                fontWeight: activeSection === link.id ? 'bold' : 'normal',
+                                paddingTop: '2px',
+                                paddingBottom: '2px'
+                            }}
                         >
                             {link.name}
                         </Button>

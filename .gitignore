@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment & Private Config
+.env
+.env.local
+.env.*.local
+.npmrc
+
+# Scripts (Local Utilities)
+scripts/
+
+# Data (Loaded from Firebase)
+src/data/
+firebase_data/

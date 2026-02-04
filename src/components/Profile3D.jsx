@@ -1,6 +1,7 @@
 import React, { useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html, useProgress, Stage } from '@react-three/drei';
+import modelPath from '../assets/matheus_3d.glb';
 
 function Loader() {
     const { progress } = useProgress();
@@ -8,9 +9,7 @@ function Loader() {
 }
 
 function Model(props) {
-    // Load the GLTF model using exact path relative to base
-    const glbPath = import.meta.env.BASE_URL + 'matheus_3d.glb';
-    const { scene } = useGLTF(glbPath);
+    const { scene } = useGLTF(modelPath);
     return <primitive object={scene} {...props} />;
 }
 

@@ -19,6 +19,13 @@
   --font-mono: "Courier New", Courier, monospace;
 }
 
+@font-face {
+  font-family: 'ComicCustom';
+  src: url('./assets/COMIC.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 * {
   box-sizing: border-box;
 }

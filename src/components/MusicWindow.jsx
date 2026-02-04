@@ -91,7 +91,7 @@ const MusicWindow = () => {
     const displayedTracks = tracks.slice(0, 5);
 
     return (
-        <div style={{ height: '300px', overflowY: 'auto', paddingBottom: '10px', background: 'transparent' }}>
+        <div style={{ paddingBottom: '10px', background: 'transparent' }}>
             <TrackList>
                 {displayedTracks.map((track, index) => (
                     <TrackItem key={index}>

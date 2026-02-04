@@ -96,9 +96,20 @@ const XboxWindow = () => {
         const fetchXboxData = async () => {
             try {
                 const res = await fetch('/.netlify/functions/xbox');
-                if (!res.ok) throw new Error('Falha ao carregar');
+
+                if (!res.ok) {
+                    // Tentar ler o corpo do erro se for JSON
+                    let errMsg = `Erro ${res.status}: ${res.statusText}`;
+                    try {
+                        const errJson = await res.json();
+                        if (errJson.error) errMsg += ` - ${errJson.error}`;
+                    } catch (e) {
+                        // Ignora se não for JSON
+                    }
+                    throw new Error(errMsg);
+                }
+
                 const json = await res.json();
-                
                 if (json.error) throw new Error(json.error);
 
                 setData(json);
@@ -116,9 +127,9 @@ const XboxWindow = () => {
     const getUserData = () => {
         if (!data || !data.account || !data.account.profileUsers || data.account.profileUsers.length === 0) return null;
         const user = data.account.profileUsers[0];
-        
+
         const getSetting = (id) => user.settings.find(s => s.id === id)?.value;
-        
+
         let lastGame = null;
         if (data.history && data.history.titles && data.history.titles.length > 0) {
             lastGame = data.history.titles[0];

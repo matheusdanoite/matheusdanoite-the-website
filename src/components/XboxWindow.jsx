@@ -95,7 +95,17 @@ const XboxWindow = () => {
     useEffect(() => {
         const fetchXboxData = async () => {
             try {
-                const res = await fetch('/.netlify/functions/xbox');
+                // ------------------------------------------------------------------
+                // Este endpoint pode ser acessado de duas formas:
+                // 1. Rodando no Netlify/Cloudflare (Produção)
+                // 2. Rodando localmente com `wrangler pages dev` ou `netlify dev`
+                //
+                // Se você rodar apenas `npm run dev` (Vite), esse endpoint NÃO existe (404).
+                // Portanto, usamos um bloco try/catch para detectar isso e carregar DADOS DE TESTE (Mock).
+                // ISSO É NORMAL E ESPERADO EM DESENVOLVIMENTO LOCAL.
+                // ------------------------------------------------------------------
+
+                const res = await fetch('/api/xbox');
 
                 if (!res.ok) {
                     // Tentar ler o corpo do erro se for JSON
@@ -131,8 +141,9 @@ const XboxWindow = () => {
         const getSetting = (id) => user.settings.find(s => s.id === id)?.value;
 
         let lastGame = null;
-        if (data.history && data.history.titles && data.history.titles.length > 0) {
-            lastGame = data.history.titles[0];
+        // Data.history is now an array of cleaner objects from our backend
+        if (data.history && Array.isArray(data.history) && data.history.length > 0) {
+            lastGame = data.history[0];
         }
 
         return {
@@ -146,7 +157,7 @@ const XboxWindow = () => {
     const userData = getUserData();
 
     return (
-        <div style={{ padding: '0 5px' }}>
+        <div style={{ padding: '5px' }}>
             {loading && (
                 <LoadingContainer>
                     <p>Conectando ao Xbox Live...</p>

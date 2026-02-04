@@ -60,8 +60,9 @@ const MusicWindow = () => {
     useEffect(() => {
         // Defines the API URL. In production (GitHub Pages), this MUST be the full URL of your Netlify site.
         // Example: https://meu-portfolio.netlify.app/.netlify/functions/lastfm
-        const API_BASE = import.meta.env.VITE_NETLIFY_URL || '';
-        const FUNCTION_URL = `${API_BASE}/.netlify/functions/lastfm`;
+        // Defines the API URL. In production (Cloudflare Pages), this is relative.
+        // Example: /api/lastfm
+        const FUNCTION_URL = '/api/lastfm';
 
         fetch(FUNCTION_URL)
             .then(res => {

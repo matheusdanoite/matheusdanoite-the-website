@@ -11,17 +11,11 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Allow Vite/Rollup to handle chunking automatically to avoid circular deps
+          // or split very specifically if needed later.
+          // For now, removing the problematic vendor split.
           if (id.includes('node_modules')) {
-            // Split React core into its own chunk
-            if (id.includes('react-dom') || id.includes('react/')) {
-              return 'vendor-react';
-            }
-            // Split styled-components
-            if (id.includes('styled-components')) {
-              return 'vendor-styled';
-            }
-            // Group other node_modules into a vendor chunk
-            return 'vendor';
+            return 'vendor'; // Single huge vendor chunk is safer than circular deps
           }
         }
       }

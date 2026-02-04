@@ -108,15 +108,27 @@ const XboxWindow = () => {
                 const res = await fetch('/api/xbox');
 
                 if (!res.ok) {
-                    // Tentar ler o corpo do erro se for JSON
+                    // Tentar ler o corpo do erro se for JSON ou Texto
                     let errMsg = `Erro ${res.status}: ${res.statusText}`;
                     try {
-                        const errJson = await res.json();
-                        if (errJson.error) errMsg += ` - ${errJson.error}`;
+                        const contentType = res.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const errJson = await res.json();
+                            if (errJson.error) errMsg += ` - ${errJson.error}`;
+                        } else {
+                            const errText = await res.text();
+                            errMsg += ` - Response: ${errText.slice(0, 100)}`; // Log first 100 chars
+                        }
                     } catch (e) {
-                        // Ignora se não for JSON
+                        // Ignora erro de parsing
                     }
                     throw new Error(errMsg);
+                }
+
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    throw new Error(`Expected JSON but got ${contentType}: ${text.slice(0, 100)}`);
                 }
 
                 const json = await res.json();

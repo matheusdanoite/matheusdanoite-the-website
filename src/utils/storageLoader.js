@@ -36,7 +36,7 @@ export const getStorageUrl = async (path) => {
         urlCache.set(cleanPath, url);
         return url;
     } catch (error) {
-        console.error(`[StorageLoader] Error fetching URL for ${cleanPath}:`, error);
+        console.error(`[StorageLoader] Error fetching URL for ${cleanPath}:`, error.message, error);
         return "";
     }
 };
@@ -58,7 +58,11 @@ export const fetchJsonFromStorage = async (path) => {
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error(`[StorageLoader] Error fetching JSON ${path}:`, error);
+        console.error(`[StorageLoader] Error fetching JSON ${path}:`, error.message);
+        // Se for erro de CORS/Network, detalhar
+        if (error.name === 'TypeError' && error.message === 'Load failed') {
+            console.error("This looks like a CORS error (Access-Control-Allow-Origin missing) or network failure.");
+        }
         return null;
     }
 };

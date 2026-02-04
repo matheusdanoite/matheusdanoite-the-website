@@ -532,7 +532,7 @@ const StoryViewerHeader = styled.div`
   color: #fff;
 `;
 
-const StoryHeaderProfile = styled.img`
+const StoryHeaderProfile = styled(FirebaseMedia)`
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -824,7 +824,7 @@ const StoryViewer = ({ initialDate, storyDates, stories, onClose, profilePic, si
         <StoryInner>
           <TopGradient />
           <StoryViewerHeader>
-            <StoryHeaderProfile src={profilePic} />
+            <StoryHeaderProfile path={profilePic} />
             <StoryHeaderInfo>
               <StoryHeaderUsername>matheusdodia</StoryHeaderUsername>
               <StoryHeaderTime>{dateLabel} • {timeLabel}</StoryHeaderTime>
@@ -1219,20 +1219,15 @@ const InstagramPostModal = ({ post, onClose, profilePic, stories, onProfileClick
           <MediaTrack $index={mediaIndex}>
             {post.media.map((media, idx) => (
               <MediaItem key={idx}>
-                {media.type === 'video' ? (
-                  <ModalMediaVideo
-                    src={getAssetUrl(media.uri)}
-                    controls
-                    autoPlay={idx === mediaIndex}
-                    onLoadedMetadata={idx === 0 ? handleImageLoad : undefined}
-                  />
-                ) : (
-                  <ModalMediaImage
-                    src={getAssetUrl(media.uri)}
-                    alt={`Post media ${idx}`}
-                    onLoad={idx === 0 ? handleImageLoad : undefined}
-                  />
-                )}
+                <FirebaseMedia
+                  path={media.uri}
+                  type={media.type}
+                  alt={`Post media ${idx}`}
+                  controls={media.type === 'video'}
+                  autoPlay={media.type === 'video' && idx === mediaIndex}
+                  onLoad={idx === 0 ? handleImageLoad : undefined}
+                  onLoadedMetadata={media.type === 'video' && idx === 0 ? handleImageLoad : undefined}
+                />
               </MediaItem>
             ))}
           </MediaTrack>
@@ -1241,7 +1236,7 @@ const InstagramPostModal = ({ post, onClose, profilePic, stories, onProfileClick
         <ModalInfoSection>
           <ModalHeader>
             <FeedProfileRing $hasStories={hasStories} onClick={() => hasStories && onProfileClick(postDateKey)} style={{ width: '38px', height: '38px', marginRight: '12px' }}>
-              <SmallProfilePic src={profilePic} $hasStories={hasStories} style={{ width: '100%', height: '100%' }} />
+              <SmallProfilePic path={profilePic} $hasStories={hasStories} style={{ width: '100%', height: '100%' }} />
             </FeedProfileRing>
             <ModalUsername>matheusdodia</ModalUsername>
           </ModalHeader>
@@ -1309,7 +1304,7 @@ const FeedPost = ({ post, profilePicSrc, formatDate, decodeHtml, getAssetUrl, st
     <PostCard>
       <PostHeader>
         <FeedProfileRing $hasStories={hasStories} onClick={() => hasStories && onProfileClick(postDateKey)}>
-          <SmallProfilePic src={profilePicSrc} $hasStories={hasStories} />
+          <SmallProfilePic path={profilePicSrc} $hasStories={hasStories} />
         </FeedProfileRing>
         <span style={{ fontWeight: 600 }}>matheusdodia</span>
         <span style={{ marginLeft: 'auto', color: '#8e8e8e', fontSize: '12px' }}>{formatDate(post.date)}</span>
@@ -1328,19 +1323,13 @@ const FeedPost = ({ post, profilePicSrc, formatDate, decodeHtml, getAssetUrl, st
         <MediaTrack $index={mediaIndex}>
           {post.media.map((media, idx) => (
             <MediaItem key={idx}>
-              {media.type === 'video' ? (
-                <video
-                  src={getAssetUrl(media.uri)}
-                  controls={idx === mediaIndex}
-                  onLoadedMetadata={idx === 0 ? handleImageLoad : undefined}
-                />
-              ) : (
-                <img
-                  src={getAssetUrl(media.uri)}
-                  loading="lazy"
-                  onLoad={idx === 0 ? handleImageLoad : undefined}
-                />
-              )}
+              <FirebaseMedia
+                path={media.uri}
+                type={media.type}
+                controls={media.type === 'video' && idx === mediaIndex}
+                onLoad={idx === 0 ? handleImageLoad : undefined}
+                onLoadedMetadata={media.type === 'video' && idx === 0 ? handleImageLoad : undefined}
+              />
             </MediaItem>
           ))}
         </MediaTrack>
@@ -1368,8 +1357,7 @@ const Instagram = () => {
   const [activeTab, setActiveTab] = useState('posts');
   const [selectedPost, setSelectedPost] = useState(null); // For feed view from grid
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [storyViewerOpen, setStoryViewerOpen] = useState(false);
-  const [initialStoryDate, setInitialStoryDate] = useState(null);
+  const [activeStoryDate, setActiveStoryDate] = useState(null);
 
   // Data State
   const [data, setData] = useState({ posts: [], stories: {}, reels: [], loading: true });
@@ -1399,26 +1387,11 @@ const Instagram = () => {
 
   const { posts, stories, reels, loading } = data;
 
-  if (loading) {
-    return <Container><div style={{ marginTop: 100 }}>Carregando...</div></Container>;
-  }
-
-  // Helper to check if a date string has stories
-  const hasStories = (dateStringIgnored) => {
-    // Logic from user: check if *today* or meaningful date has stories?
-    // Actually previous code might have had logic. 
-    // Let's assume we want to show ring if there are any stories.
-    // Or check specific logic. The user request didn't specify changing this logic, just data source.
-    // But we need to make sure 'stories' object is populated.
-    return Object.keys(stories).length > 0;
-  };
-
   const storyDates = Object.keys(stories).sort((a, b) => new Date(b) - new Date(a)); // Newest first usually
 
-
   // Stats Calculations
-  const reelsCount = posts.filter(p => p.media[0].type === 'video').length;
-  const storiesCount = Object.values(stories).reduce((acc, day) => acc + day.length, 0);
+  const reelsCount = posts ? posts.filter(p => p.media[0].type === 'video').length : 0;
+  const storiesCount = stories ? Object.values(stories).reduce((acc, day) => acc + day.length, 0) : 0;
 
   const [singleDayMode, setSingleDayMode] = useState(false);
   const [visiblePosts, setVisiblePosts] = useState(10);
@@ -1452,13 +1425,18 @@ const Instagram = () => {
     return () => observer.disconnect();
   }, [activeTab, posts.length]);
 
+  if (loading) {
+    return <Container><div style={{ marginTop: 100 }}>Carregando...</div></Container>;
+  }
+
+
+
   const handleOpenFeed = () => setActiveTab('feed');
   const handleCloseFeed = () => setActiveTab('posts');
 
   const handleOpenStories = (date, singleDay = false) => {
     setSingleDayMode(singleDay);
-    setInitialStoryDate(date);
-    setStoryViewerOpen(true);
+    setActiveStoryDate(date);
   };
 
   const handlePostClick = (post) => {
@@ -1480,7 +1458,7 @@ const Instagram = () => {
         <ProfileHeader>
           <ProfilePicContainer>
             <ProfileImage
-              path="instagram/media/profile.jpg"
+              path={profilePicSrc}
               alt="Profile"
             />
           </ProfilePicContainer>

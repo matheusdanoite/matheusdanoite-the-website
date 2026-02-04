@@ -1080,12 +1080,12 @@ const Twitter = () => {
                 return (
                   <MediaGridItem key={idx}>
                     <FirebaseMedia
-                      path={media.path} // Assuming media.path is the storage path
+                      path={media.thumbPath}
                       type={media.type}
                       alt="Media"
                       loading="lazy"
                       style={{ cursor: 'pointer' }}
-                      onClick={() => openLightbox(media.tweetIndex, media.mediaIndex)}
+                      onClick={() => openLightbox(media.mediumPath)}
                     />
                     {isVideo && (
                       <div style={{

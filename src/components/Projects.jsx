@@ -82,12 +82,12 @@ const Projects = () => {
                 return (
                     <ProjectContentWrapper style={{ maxHeight: isMobile ? 'calc(90vh - 100px)' : '60vh', overflowY: 'auto', paddingRight: '10px' }}>
                         <p style={{ fontWeight: 'bold' }}>Um estudo sobre tipografia e café.</p>
-                        <ProjectImage src="https://via.placeholder.com/600x400?text=Hangul+Foto+1" alt="Hangul Preview" />
+                        <ProjectImage src="https://placehold.co/600x400/png?text=Hangul+Foto+1" alt="Hangul Preview" />
                         <p>
                             Hangul Hangover é um projeto que explora a intersecção entre a estética do alfabeto coreano e a cultura do café noturno.
                             Desenvolvido com foco em legibilidade e atmosfera.
                         </p>
-                        <ProjectImage src="https://via.placeholder.com/600x400?text=Hangul+Foto+2" alt="Hangul Preview 2" />
+                        <ProjectImage src="https://placehold.co/600x400/png?text=Hangul+Foto+2" alt="Hangul Preview 2" />
                         <p>
                             Mais detalhes sobre o processo criativo, ferramentas utilizadas e o resultado final.
                             A tipografia foi desenhada para funcionar bem em ambientes com pouca luz, lembrando displays CRT antigos.

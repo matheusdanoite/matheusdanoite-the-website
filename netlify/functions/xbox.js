@@ -1,6 +1,6 @@
 exports.handler = async function (event, context) {
     try {
-        const fetch = (await import('node-fetch')).default;
+        // node-fetch is not needed in Node 18+ (Netlify uses 20/22)
         const apiKey = process.env.XBL_API_KEY;
 
         if (!apiKey) {

@@ -1,6 +1,6 @@
 export async function onRequest(context) {
-    const API_KEY = context.env.LASTFM_API_KEY;
-    const USERNAME = context.env.LASTFM_USERNAME;
+    const API_KEY = context.env.LASTFM_API_KEY?.trim();
+    const USERNAME = context.env.LASTFM_USERNAME?.trim();
     const LIMIT = 5;
 
     // Set common headers
@@ -18,7 +18,7 @@ export async function onRequest(context) {
         });
     }
 
-    const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${USERNAME}&api_key=${API_KEY}&format=json&limit=${LIMIT}`;
+    const url = `https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${encodeURIComponent(USERNAME)}&api_key=${encodeURIComponent(API_KEY)}&format=json&limit=${LIMIT}`;
 
     try {
         const response = await fetch(url, {

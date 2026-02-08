@@ -24,14 +24,17 @@ const BlueSkyWindow = () => {
         const fetchPosts = async () => {
             try {
                 const response = await fetch('https://public.api.bsky.app/xrpc/app.bsky.feed.getAuthorFeed?actor=matheusdanoite.com&limit=5');
-                if (!response.ok) throw new Error('Failed to fetch');
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`Failed to fetch BlueSky: ${response.status} ${text.slice(0, 50)}`);
+                }
 
                 const data = await response.json();
                 setPosts(data.feed || []);
                 setLoading(false);
             } catch (err) {
-                console.error(err);
-                setError(true);
+                console.error("BlueSky API failed:", err.name, err.message);
+                setError(true); // Keeping UI simple for BlueSky as requested by current code
                 setLoading(false);
             }
         };

@@ -1,6 +1,6 @@
 export async function onRequest(context) {
-    const STEAM_API_KEY = context.env.STEAM_API_KEY;
-    const STEAM_ID = context.env.STEAM_ID;
+    const STEAM_API_KEY = context.env.STEAM_API_KEY?.trim();
+    const STEAM_ID = context.env.STEAM_ID?.trim();
 
     const commonHeaders = {
         'Content-Type': 'application/json',
@@ -18,19 +18,19 @@ export async function onRequest(context) {
 
     try {
         // 1. Get Player Summaries (includes timecreated)
-        const summaryUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${STEAM_API_KEY}&steamids=${STEAM_ID}`;
+        const summaryUrl = `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key=${encodeURIComponent(STEAM_API_KEY)}&steamids=${encodeURIComponent(STEAM_ID)}`;
         const summaryRes = await fetch(summaryUrl);
         const summaryData = await summaryRes.json();
 
         // 2. Get Owned Games (to ensure we have at least 3 games)
         // include_appinfo=1: get name and icon
         // include_played_free_games=1: include free games
-        const ownedGamesUrl = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${STEAM_API_KEY}&steamid=${STEAM_ID}&include_appinfo=1&include_played_free_games=1&format=json`;
+        const ownedGamesUrl = `https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=${encodeURIComponent(STEAM_API_KEY)}&steamid=${encodeURIComponent(STEAM_ID)}&include_appinfo=1&include_played_free_games=1&format=json`;
         const ownedRes = await fetch(ownedGamesUrl);
         const ownedData = await ownedRes.json();
 
         // 3. Get Steam Level
-        const levelUrl = `https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${STEAM_API_KEY}&steamid=${STEAM_ID}`;
+        const levelUrl = `https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/?key=${encodeURIComponent(STEAM_API_KEY)}&steamid=${encodeURIComponent(STEAM_ID)}`;
         const levelRes = await fetch(levelUrl);
         const levelData = await levelRes.json();
 

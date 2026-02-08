@@ -112,14 +112,31 @@ const SteamWindow = () => {
     useEffect(() => {
         const fetchSteamData = async () => {
             try {
-                const res = await fetch('/api/steam');
-                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                // Use explicit URL resolution to avoid Safari pattern matching errors
+                const apiUrl = new URL('/api/steam', window.location.origin).href;
+                const res = await fetch(apiUrl);
+
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`HTTP Error ${res.status}: ${text.slice(0, 50)}`);
+                }
+
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await res.text();
+                    throw new Error(`Formato de resposta inválido (${contentType}). Resposta: ${text.slice(0, 50)}`);
+                }
+
                 const json = await res.json();
                 if (json.error) throw new Error(json.error);
                 setData(json);
             } catch (err) {
-                console.error("Steam API failed:", err);
-                setError(err.message);
+                console.error("Steam API failed Details:", {
+                    name: err.name,
+                    message: err.message,
+                    stack: err.stack
+                });
+                setError(`${err.name}: ${err.message}`);
             } finally {
                 setLoading(false);
             }

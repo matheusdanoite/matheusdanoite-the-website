@@ -58,22 +58,31 @@ const MusicWindow = () => {
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        // Defines the API URL. In production (Cloudflare Pages), this is relative.
-        // Example: /lastfm
-        const FUNCTION_URL = '/api/lastfm';
+        // Use explicit URL resolution to avoid Safari pattern matching errors
+        const apiUrl = new URL('/api/lastfm', window.location.origin).href;
 
-        fetch(FUNCTION_URL)
+        fetch(apiUrl)
             .then(async res => {
+                const contentType = res.headers.get("content-type");
+                const isJson = contentType && contentType.includes("application/json");
+
                 if (!res.ok) {
                     let errMsg = `Erro ${res.status}`;
-                    try {
+                    if (isJson) {
                         const data = await res.json();
                         if (data.error) errMsg = data.error;
-                    } catch (e) {
-                        // ignore parse error if not JSON
+                    } else {
+                        const text = await res.text();
+                        errMsg += `: ${text.slice(0, 50)}`;
                     }
                     throw new Error(errMsg);
                 }
+
+                if (!isJson) {
+                    const text = await res.text();
+                    throw new Error(`Esperado JSON, recebido: ${text.slice(0, 50)}`);
+                }
+
                 return res.json();
             })
             .then(data => {
@@ -81,8 +90,11 @@ const MusicWindow = () => {
                 setLoading(false);
             })
             .catch(err => {
-                console.error(err);
-                setError(err.message || 'Falha ao buscar dados');
+                console.error("Last.fm API failed Details:", {
+                    name: err.name,
+                    message: err.message
+                });
+                setError(`${err.name}: ${err.message}`);
                 setLoading(false);
             });
     }, []);
